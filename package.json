@@ -1,0 +1,29 @@
+{
+  "name": "bot_trader_v3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js",
+    "pro": "node index.js",
+    "default": "node defaultSetUp.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@alpacahq/alpaca-trade-api": "^2.16.1",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "fs": "^0.0.1-security",
+    "moment": "^2.29.4",
+    "nodemon": "^3.0.1",
+    "socket.io": "^4.7.2"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "json/*",
+      "methods/indicators.js"
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+    "name" : "bars",
+    "label" : "Bar type",
+    "type": "dropdown",
+    "default" : "standard",
+    "options" : [
+        {
+            "name" : "standard",
+            "label" : "Standard Candles"
+        },
+        {
+            "name" : "ha",
+            "label" : "Heikin Ashi Candles"
+        }
+        ]
+}

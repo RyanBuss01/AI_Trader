@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Socket.IO Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/show-hint.min.css">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/show-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/javascript-hint.min.js"></script>
+</head>
+<body>
+    <h1>Hello, Developer!</h1>
+    <input id="functionName" type="text" placeholder="Type function name...">
+    <input id="functionLabel" type="text" placeholder="Type function label...">
+    <textarea id="description" type="text" placeholder="description..." class="codeDescriptionInput"></textarea>
+    <label style="margin: 10px; margin-top: 5px;">Allow Bars Option
+        <input id="allowBarCheckBox" type="checkbox" checked>
+    </label>
+    <button onclick="addParameter()" style="display: block;">Add Parameter</button>
+    <div id="Parameter"></div>
+    <p class="error" id="error"></p>
+    <div id="saveDiv"></div>
+    <div id="SavedParameter"></div>
+    <textarea id="code">console.log('Hello, world!');</textarea>
+    <div class="codeButtons">
+        <button onclick="runScript()">Run Code</button>
+        <button onclick="addFunctionToIndicators()">Add Function</button>
+        <div id="loadedText" style="display: block;"></div>
+    </div>
+    
+    <p class="error" id="uploadError"></p>
+    <pre id="console-output"></pre>
+    
+   
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="./tools/tools.js"></script>
+    <script src="./tools/barEnv.js"></script>
+    <script src="./sockets/devSocket.js"></script>
+    <script src="./tools/devScripter.js"></script>
+</body>
+</html>
