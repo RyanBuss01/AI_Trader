@@ -1,9 +1,27 @@
 const socket = io(window.parent.serverPath);
 const searchBar = document.getElementById('searchBar');
 const resultsContainer = document.getElementById('searchResults');
+const selctedStockDiv = document.getElementById('selectedStock');
 let currentDisplayedItem = null;
+let selectedStock = null
 
-let searchResultClick = (ticker) => {}
+let searchResultClick = (ticker) => {
+    searchBar.value = '';
+    resultsContainer.innerHTML = '';
+    selectedStock = ticker
+    build()
+}
+
+let build = () => {
+    if(selectedStock == null) {
+        selctedStockDiv.innerHTML =  ''
+    }
+    else {
+        let stockName = document.createElement('div')
+        selctedStockDiv.appendChild(stockName)
+    }
+
+}
 
 searchBar.addEventListener('input', () => {
     const query = searchBar.value;
