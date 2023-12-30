@@ -10,14 +10,6 @@ let scannerLoadingText = document.getElementById('scannerLoadingText')
 let currentDisplayedItem = null;
 let activeFilters = [];
 
-socket.on('connect', () => {
-    console.log('Connected to server');
-});
-
-socket.on('addFilter', (jsonItem) => {
-    createFilterHtml(jsonItem)
-})
-
 // Logic to add filter
 function createFilterHtml(jsonItem) {
     filterCreater.innerHTML = '';
@@ -221,6 +213,10 @@ searchBar.addEventListener('input', () => {
     socket.emit('search', query);
 });
 
+socket.on('connect', () => console.log('Connected to server'));
+socket.on('addFilter', (jsonItem) => createFilterHtml(jsonItem))
+socket.on('scanLoading', (data) => scannerLoadingText.textContent= `${data[0]} / ${data[1]} iterations complete`)
+
 socket.on('searchResults', (results) => {
     resultsContainer.innerHTML = ''; // Clear previous results
 
@@ -234,11 +230,6 @@ socket.on('searchResults', (results) => {
         }
     });
 });
-
-socket.on('scanLoading', (data) => {
-    let i = data[0], total = data[1]
-    scannerLoadingText.textContent= `${i} / ${total} iterations complete`
-})
 
 socket.on('scan', (data) => {
     scannerLoadingText.textContent= ``

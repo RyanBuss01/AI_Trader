@@ -17,31 +17,13 @@ const barStatFilePath = path.join(__dirname, '../json/barStats.json');
 
 
 var socketMethods = {
-    search: (socket, query) => {
-        let results = searchItems(query, indicatorsJson);
-        socket.emit('searchResults', results);
-    },
-
-    addFilter: (socket, query) => {
-        let item = indicatorsJson.filter(j=>j.name==query.name)[0]
-        let dupItem = JSON.parse(JSON.stringify(item));
-        dupItem = addBasicParams(dupItem)
-        socket.emit('addFilter', dupItem)
-    },
-
-    getBars: async (socket, type) => {
-        let list = barHandler.getMasterList()
-        list = list.map(t=>t.ticker)
-        // console.log(masterBars.length)
-        let run = async () => {
-            if(type=='full') await barHandler.getMultiBars(list, {socket:socket})
-            if(type=='refresh') await barHandler.getMultiBarsRefresh(list, fullBars, {socket:socket})
-            if(type=='default') await barHandler.getMultiBarsRefresh(barHandler.getDefaultList(), fullBars, {socket:socket})
-        }
-        await run()
-        if(socket) socket.emit('getBarsComplete')
-    },
-
+    search: (socket, query) => socket.emit('searchResults', searchItems(query, indicatorsJson)),
+    addFilter: (socket, query) => socket.emit('addFilter', addBasicParams(JSON.parse(JSON.stringify(indicatorsJson.filter(j=>j.name==query.name)[0])))),
+    getBarStats: (socket) => socket.emit('getBarStats', JSON.stringify(barStatJson)),
+    setBarStats: (socket)=> socket.emit('getBarStats', setStats()),
+    searchTicker: (socket, query) => socket.emit('searchResults', searchTickers(query, fullBars.map(t=>t.ticker))),
+    getBars: async (socket, type) => runBarHandler(barHandler.getMasterList().map(t=>t.ticker), type).then(()=> socket ? socket.emit('getBarsComplete'):null),
+        
     createIndicator: function (socket, code) {
         let name = code.name
         let label = code.label
@@ -293,39 +275,11 @@ var socketMethods = {
     }
 
     },
-
-    getBarStats: function (socket) {
-        let string = JSON.stringify(barStatJson)
-        socket.emit('getBarStats', string)
-    },
-
-    setBarStats: function (socket) {
-        let stats = setStats()
-
-        socket.emit('getBarStats', stats)
-    },
-
-    searchTicker: function (socket, query) {
-        console.log(query)
-    }
 }
 
-function searchItems(query, items) {
-    const normalizedQuery = query.toLowerCase();
-
-    return items.filter(item => {
-        const normalizedItem = item.label.toLowerCase();
-
-        // Check for direct character sequence match
-        if (hasAllLettersInSequence(normalizedQuery, normalizedItem)) {
-            return true;
-        }
-
-        // Check for abbreviation match
-        const abbreviation = getAbbreviation(normalizedItem);
-        return abbreviation.startsWith(normalizedQuery);
-    });
-}
+let searchTickers = (query, items) => items.filter(item => hasAllLettersInSequence(query.toLowerCase(), item.toLowerCase()));
+let getAbbreviation = (words) => words.split(' ').map(word => word[0]).join('');
+let searchItems = (query, items) => items.filter(item => hasAllLettersInSequence(query.toLowerCase(), item.label.toLowerCase()) ? true :  getAbbreviation(item.label.toLowerCase()).startsWith(query.toLowerCase()) ? true : false)
 
 function hasAllLettersInSequence(letters, word) {
     let index = 0;
@@ -339,8 +293,10 @@ function hasAllLettersInSequence(letters, word) {
     return true;
 }
 
-function getAbbreviation(words) {
-    return words.split(' ').map(word => word[0]).join('');
+let runBarHandler = async (list, type) => {
+    if(type=='full') await barHandler.getMultiBars(list, {socket:socket})
+    if(type=='refresh') await barHandler.getMultiBarsRefresh(list, fullBars, {socket:socket})
+    if(type=='default') await barHandler.getMultiBarsRefresh(barHandler.getDefaultList(), fullBars, {socket:socket})
 }
 
 function addBasicParams(item) {
