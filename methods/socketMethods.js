@@ -303,6 +303,10 @@ var socketMethods = {
         let stats = setStats()
 
         socket.emit('getBarStats', stats)
+    },
+
+    searchTicker: function (socket, query) {
+        console.log(query)
     }
 }
 

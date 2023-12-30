@@ -19,9 +19,7 @@ function jsonWriter(list) {
 
     for (let i = 0; i < list.length; i++) {
         if (blacklist.includes(list[i].ticker)) continue;
-
         const data = JSON.stringify(list[i]);
-        
         if (i < 1800) data1.push(data);
         else data2.push(data);
     }
@@ -49,7 +47,6 @@ var barHandler = {
           let chunk = inputArray.slice(i, i + chunkSize);
           twoDimensionalArray.push(chunk);
         }
-      
         return twoDimensionalArray;
     },
 
@@ -62,14 +59,11 @@ var barHandler = {
                 let index = l==0? "snp_500" : l==1? "etfs" :l==2? "meme_stocks" :l==3? "snp_400MC" :''
                 let ticker = fullTickers[l][i]
                 let json = {ticker: ticker, index: index}
-
-
                 let repeat = master.find(e=>e.ticker == json.ticker)
                 let black = blacklist.find(e=> e==json.ticker)
                 if(!repeat && !black) master.push(json)
             }
         }
-
         return master
     },
 
@@ -87,56 +81,43 @@ var barHandler = {
             start: moment().subtract(10000, "days").format(), //  days ago
             end: moment().subtract(0, "days").subtract(20, "minutes").format(), // yesterday
             timeframe: "1Day",
-        }, alpaca.configuration
-        )
-
-    
-            for await (let t of resp) {
-                bars.push({
-                    ticker: t[0],
-                    bars: t[1].map(b => {
-                        return {
-                        Timestamp: b.Timestamp,
-                        OpenPrice: b.OpenPrice,
-                        HighPrice: b.HighPrice,
-                        LowPrice: b.LowPrice,
-                        ClosePrice: b.ClosePrice,
-                        Volume: b.Volume
-                        }
-                    })
-                });
-           }
-        
-        
+        }, alpaca.configuration)
+        for await (let t of resp) {
+            bars.push({
+                ticker: t[0],
+                bars: t[1].map(b => {
+                    return {
+                    Timestamp: b.Timestamp,
+                    OpenPrice: b.OpenPrice,
+                    HighPrice: b.HighPrice,
+                    LowPrice: b.LowPrice,
+                    ClosePrice: b.ClosePrice,
+                    Volume: b.Volume
+                    }
+                })
+            });
         }
-
-        process.stdout.write("\r\x1b[K")
-
-        jsonWriter(bars)
+    }
+    process.stdout.write("\r\x1b[K")
+    jsonWriter(bars)
     },
 
     getMultiBarsRefresh: async function (tickers, tickerList, {socket}) {
         const bars = [];
         let list = this.convertToOneDimensional(tickers)
         // let lastDate = this.getLatestBarDate(tickerList.filter(t=> t.ticker=='AAPL')[0].bars)
-        
         // compare latest date to current date and subtract
-
         for(let i=0; i<list.length; i++) {
-
         process.stdout.write("\r\x1b[K")
         process.stdout.write(`iteration : ${i*200} / ${tickers.length}`)
         if(socket) socket.emit('barGetter', {index: i*100, length: tickers.length})
-
         let resp = await alpaca.getMultiBarsV2(list[i], {
             limit: 10000000,
             start: moment().subtract(10, "days").format(), //  days ago
             end: moment().subtract(0, "days").subtract(20, "minutes").format(), // yesterday
             timeframe: "1Day",
-        }, alpaca.configuration
-        )
+        }, alpaca.configuration)
 
-    
             for await (let t of resp) {
                 bars.push({
                     ticker: t[0],
@@ -168,11 +149,10 @@ var barHandler = {
             for(b of localBars) t.bars.push(b)
             }
         }
-
         jsonWriter(tickerList)
         console.log("Complete")
     },
-
+    
     getDefaultList: () => ['AAPL', 'SPY']
 }
 

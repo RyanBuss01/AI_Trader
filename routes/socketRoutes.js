@@ -11,6 +11,7 @@ var socketRoutes = (socket) => {
     socket.on('backtest', (data) => socketMethods.backtest(socket, data))
     socket.on('getBarStats', () => socketMethods.getBarStats(socket))
     socket.on('setBarStats', () => socketMethods.setBarStats(socket))
+    socket.on('searchTicker', (data) => socketMethods.searchTicker(socket, data))
 
     socket.on('disconnect', () => console.log('Client disconnected'));
 }
