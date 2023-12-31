@@ -24,6 +24,18 @@ var tools = {
         return Number(percentage.toFixed(2));
     },
 
+    getSma: function (data, period) {
+        let sma = [];
+        for (let i = period - 1; i < data.length; i++) {
+            let sum = 0;
+            for (let j = 0; j < period; j++) {
+                sum += data[i - j];
+            }
+            sma.push(sum / period);
+        }
+        return sma;
+    },
+
     getEMA: function (prices, period) {
         let ema = [];
         let k = 2 / (period + 1);
@@ -73,6 +85,54 @@ var tools = {
     
         return candles;
     },
+
+    getRSI: function (closePrices, period) {
+        let gains = 0;
+        let losses = 0;
+        let rsis = Array(period).fill(0);
+    
+        // First average gain/loss
+        for (let i = 1; i <= period; i++) {
+            const difference = closePrices[i] - closePrices[i - 1];
+            if (difference > 0) gains += difference;
+            else losses -= difference;
+        }
+    
+        let avgGain = gains / period;
+        let avgLoss = losses / period;
+    
+        // Subsequent average gain/loss and RSI calculation
+        for (let i = period + 1; i < closePrices.length; i++) {
+            const difference = closePrices[i] - closePrices[i - 1];
+            if (difference > 0) {
+                avgGain = (avgGain * (period - 1) + difference) / period;
+                avgLoss = avgLoss * (period - 1) / period;
+            } else {
+                avgGain = avgGain * (period - 1) / period;
+                avgLoss = (avgLoss * (period - 1) - difference) / period;
+            }
+    
+            const rs = avgGain / avgLoss;
+            const rsi = 100 - (100 / (1 + rs));
+            rsis.push(rsi);
+        }
+    
+        return rsis;
+      },
+
+    getStochRsi: function (data, lengthRSI=14, lengthStoch=14, smoothK=3, smoothD=3) {
+        const rsi = this.getRSI(data, lengthRSI);
+        let stochRsi = [];
+        for (let i = lengthStoch - 1; i < rsi.length; i++) {
+            const rsiWindow = rsi.slice(i - lengthStoch + 1, i + 1);
+            const rsiHigh = Math.max(...rsiWindow);
+            const rsiLow = Math.min(...rsiWindow);
+            stochRsi.push((rsi[i] - rsiLow) / (rsiHigh - rsiLow) * 100);
+        }
+        const kLine = this.getSma(stochRsi, smoothK);
+        const dLine = this.getSma(kLine, smoothD);
+        return {line: kLine, signal: dLine };
+      },
 }
 
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
