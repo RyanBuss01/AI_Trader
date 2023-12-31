@@ -5,9 +5,13 @@ fullBars.push(...fullBars2)
 
 console.log('-------TEST-------')
 
-let bars = fullBars.filter(t=> t.ticker == 'SPY')[0].bars
-let data = bars.map(b=>b.ClosePrice)
+// let bars = fullBars.filter(t=> t.ticker == 'SPY')[0].bars
 
-let {line, signal} = tools.getStochRsi(data)
+for(let i=0; i<fullBars.length; i++) {
+    let bars = fullBars[i].bars
+    let isDoji = tools.isDojiCandle(bars)
+    if(isDoji) console.log(fullBars[i].ticker)
+}
 
-console.log(line[line.length-1])
+
+// console.log(line[line.length-1])

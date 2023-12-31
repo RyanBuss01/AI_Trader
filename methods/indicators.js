@@ -87,6 +87,23 @@ return {
   bearSell : macd[macd.length-1]>signal[signal.length-1],
 }
 },
+    stochRsi: function anonymous(bars,data,vars
+) {
+
+
+let {line, signal} = tools.getStochRsi(data, vars.lengthRSi, vars.lengthStoch, vars.smoothK, vars.smoothD)
+    
+line = line[line.length-1]
+signal = signal[signal.length-1]
+
+return {
+  bullBuy : line>signal && line>20,
+  bearBuy : line<signal && line<80,
+  
+  bullSell : line<signal || line<80, 
+  bearSell : line>signal || line>20,
+}
+},
 };
 
 module.exports = indicators;

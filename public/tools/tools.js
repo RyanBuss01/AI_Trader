@@ -133,6 +133,20 @@ var tools = {
         const dLine = this.getSma(kLine, smoothD);
         return {line: kLine, signal: dLine };
       },
+
+      isDojiCandle: (bars, offset=1, divisor=2) => {
+        let bar = bars[bars.length-offset]
+
+        barSize = Math.abs(bar.ClosePrice-bar.OpenPrice)
+        wickSize = Math.abs(bar.HighPrice-bar.LowPrice)
+
+        if(bar.OpenPrice == bar.LowPrice || bar.OpenPrice == bar.HighPrice) return false;
+        if(barSize>wickSize/divisor) return false;
+        if(bar.OpenPrice<bar.LowPrice+(wickSize/4) && bar.ClosePrice<bar.LowPrice+(wickSize/4)) return false;
+        if(bar.OpenPrice>bar.HighPrice-(wickSize/4) && bar.ClosePrice>bar.HighPrice-(wickSize/4)) return false;
+
+        return true
+      }
 }
 
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {

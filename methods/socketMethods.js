@@ -22,7 +22,7 @@ var socketMethods = {
     getBarStats: (socket) => socket.emit('getBarStats', JSON.stringify(barStatJson)),
     setBarStats: (socket)=> socket.emit('getBarStats', setStats()),
     searchTicker: (socket, query) => socket.emit('searchResults', searchTickers(query, fullBars.map(t=>t.ticker))),
-    getBars: async (socket, type) => runBarHandler(barHandler.getMasterList().map(t=>t.ticker), type).then(()=> socket ? socket.emit('getBarsComplete'):null),
+    getBars: async (socket, type) => runBarHandler(barHandler.getMasterList().map(t=>t.ticker), type, socket).then(()=> socket ? socket.emit('getBarsComplete'):null),
         
     createIndicator: function (socket, code) {
         let name = code.name
@@ -30,6 +30,7 @@ var socketMethods = {
         let params = code.params
         let isBarOption = code.allowBars
         let description = code.description
+        let isDataOption = code.isDataOption
         code = code.code
 
         // let allParams = [barConstant].concat(params);
@@ -40,7 +41,7 @@ var socketMethods = {
         }
 
          // Update the in-memory indicators object
-        indicators[name] = new Function(['bars', 'vars'], code);
+        indicators[name] = new Function(['bars', 'data', 'vars'], code);
 
         // Start building the file content
         let fileContent = `const tools = require('../public/tools/tools');\n\n`
@@ -78,6 +79,7 @@ var socketMethods = {
             "name": name,
             "label": label,
             "barOption" : isBarOption,
+            "isDataOption": isDataOption,
             "description" : description,
             "parameters": paramArray
         }
@@ -114,8 +116,11 @@ var socketMethods = {
 
 
             for(let i=0; i<filters.length; i++) {
-                let setBars = bars
+                let setBars = bars, data = bars.map(b=>b.ClosePrice)
                 if(varList[i].bars =='ha') setBars = proccessors.getHa(bars)
+                if(varList[i].data== "open")  data = bars.map(b=>b.OpenPrice)
+                if(varList[i].data == 'low')  data = bars.map(b=>b.LowPrice)
+                if(varList[i].data == 'high')  data = bars.map(b=>b.HighPrice)
                 let res = {
                     bullBuy: true,
                     bearBuy: true,
@@ -124,7 +129,7 @@ var socketMethods = {
                 }
                 let index=0
                 do {
-                    let filter = filters[i](index>0 ? setBars.slice(0, -index) : setBars, varList[i])
+                    let filter = filters[i](index>0 ? setBars.slice(0, -index) : setBars, data, varList[i])
                     if (!filter.bullBuy) res.bullBuy = false;
                     if (!filter.bearBuy) res.bearBuy = false;
                     if(filter.bullSell) res.bullSell = true
@@ -293,7 +298,7 @@ function hasAllLettersInSequence(letters, word) {
     return true;
 }
 
-let runBarHandler = async (list, type) => {
+let runBarHandler = async (list, type, socket) => {
     if(type=='full') await barHandler.getMultiBars(list, {socket:socket})
     if(type=='refresh') await barHandler.getMultiBarsRefresh(list, fullBars, {socket:socket})
     if(type=='default') await barHandler.getMultiBarsRefresh(barHandler.getDefaultList(), fullBars, {socket:socket})
@@ -315,7 +320,32 @@ function addBasicParams(item) {
                 "label" : "Heikin Ashi Candles"
             }
             ]
-    }
+    },
+
+    dataInputParam = {
+        "name" : "data",
+        "label" : "Price Input",
+        "type": "dropdown",
+        "default" : "close",
+        "options" : [
+            {
+                "name" : "close",
+                "label" : "Close"
+            },
+            {
+                "name" : "open",
+                "label" : "Open"
+            },
+            {
+                "name" : "low",
+                "label" : "Low"
+            },
+            {
+                "name" : "high",
+                "label" : "High"
+            }
+            ]
+    } 
 
     bullBuyParam = {
         "name": "bullBuy",
@@ -353,6 +383,7 @@ function addBasicParams(item) {
     }
 
     if(item.barOption) item.parameters.push(barParam)
+    if(item.barOption) item.parameters.push(dataInputParam)
     item.parameters.push(bullBuyParam)
     item.parameters.push(bearBuyParam)
     item.parameters.push(bullSellParam)
