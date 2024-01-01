@@ -17,8 +17,9 @@ function addFunctionToIndicators() {
         var functionLabel = document.getElementById('functionLabel').value.trim();
         var allowBars = document.getElementById('allowBarCheckBox').checked
         var isDataOption = document.getElementById('allowDataCheckBox').checked
+        var isSet = document.getElementById('isSetReturn').checked
         var description = document.getElementById('description').value.trim()
-        let data = {name: functionName, label: functionLabel, code:code, params: savedParams, allowBars: allowBars, description: description, isDataOption: isDataOption}
+        let data = {name: functionName, label: functionLabel, code:code, params: savedParams, allowBars: allowBars, description: description, isDataOption: isDataOption, isSet: isSet}
         socket.emit('createFunc', data)
     }
     else {

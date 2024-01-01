@@ -31,6 +31,9 @@ return {
   // If no sell signal is desired set both to null
   bullSell : close<yesterday, 
   bearSell : close>yesterday,
+
+  // If is set type
+  set : true
 }`;
 
     editor.setValue(defaultCode);
@@ -63,8 +66,14 @@ document.addEventListener('DOMContentLoaded', (event) => {
 function runScript() {
     var code = editor.getValue()
     var func = new Function(code);
+    var isSet = document.getElementById('isSetReturn').checked
     document.getElementById('console-output').innerHTML = ""
     let res = func();
+    if(isSet) {
+        console.log(
+            `\n\nResults: ${res.set}`
+        )
+    }else {
     console.log(
     `\n
 Results:
@@ -73,6 +82,7 @@ Buy Bear signal: ${res.bearBuy}
 Sell Bull signal: ${res.bullSell}
 Sell Bear signal: ${res.bearSell}`
     )
+    }
 }
 
 window.initializeEditor = initializeEditor;

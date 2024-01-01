@@ -1,7 +1,7 @@
 const tools = require('../public/tools/tools');
 
 let indicators = {
-    ema: function anonymous(bars,vars
+    ema: function anonymous(bars,data,vars
 ) {
 let ema = tools.getEMA(bars.map(b=>b.ClosePrice), vars.period)
 let close = bars[bars.length-1].ClosePrice
@@ -18,7 +18,7 @@ return {
   bearSell : close>ema,
 }
 },
-    haTrendingBar: function anonymous(bars,vars
+    haTrendingBar: function anonymous(bars,data,vars
 ) {
 bars = tools.getHa(bars)
 let low = bars[bars.length-1].LowPrice
@@ -33,17 +33,8 @@ return {
   bearSell : open!=high,
 }
 },
-    macd: function anonymous(bars,vars
+    macd: function anonymous(bars,data,vars
 ) {
-let data
-data = bars.map(b=>b.ClosePrice)
-
-if(vars.input=='close') data = bars.map(b=>b.ClosePrice)
-if(vars.input=='open') data = bars.map(b=>b.OpenPrice)
-if(vars.input=='high') data = bars.map(b=>b.HighPrice)
-if(vars.input=='low') data = bars.map(b=>b.LowPrice)
-
-
 let macd = tools.getMacd(data, vars.shortPeriod, vars.longPeriod)
 
 let signal = macd.signalLine
@@ -62,16 +53,9 @@ return {
   bearSell : macd>signal,
 }
 },
-    macdCrossover: function anonymous(bars,vars
+    macdCrossover: function anonymous(bars,data,vars
 ) {
-let data
-if(vars.input=='close') data = bars.map(b=>b.ClosePrice)
-if(vars.input=='open') data = bars.map(b=>b.OpenPrice)
-if(vars.input=='low') data = bars.map(b=>b.LowPrice)
-if(vars.input=='high') data = bars.map(b=>b.HighPrice)
 
-let close = bars[bars.length-1].ClosePrice
-let yesterday = bars[bars.length-2].ClosePrice
 
 let macd = tools.getMacd(data, 12, 26)
 let signal = macd.signalLine
@@ -87,21 +71,33 @@ return {
   bearSell : macd[macd.length-1]>signal[signal.length-1],
 }
 },
-    stochRsi: function anonymous(bars,data,vars
+    sotchRSI: function anonymous(bars,data,vars
 ) {
+// Default: AAPL used as sample data
 
-
-let {line, signal} = tools.getStochRsi(data, vars.lengthRSi, vars.lengthStoch, vars.smoothK, vars.smoothD)
+let {line, signal} = tools.getStochRsi(data, vars.lengthRSI, vars.lengthStoch, vars.smoothK, vars.smoothD)
     
 line = line[line.length-1]
 signal = signal[signal.length-1]
 
+// Must return boolean for each of the following
 return {
-  bullBuy : line>signal && line>20,
-  bearBuy : line<signal && line<80,
+  bullBuy : line>signal && line <80,
+  bearBuy : line<signal && line >20,
   
-  bullSell : line<signal || line<80, 
-  bearSell : line>signal || line>20,
+  // If no sell signal is desired set both to null
+  bullSell : line<signal || line > 80, 
+  bearSell : line>signal || line < 20,
+}
+},
+    isDoji: function anonymous(bars,data,vars
+) {
+let doji = tools.isDojiCandle(bars)
+console.log(doji)
+
+    
+return {
+  set : doji
 }
 },
 };

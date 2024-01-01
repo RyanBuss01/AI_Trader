@@ -15,7 +15,6 @@ const indicatorsFilePath = path.join(__dirname, '../methods/indicators.js');
 const indicatorsJSONFilePath = path.join(__dirname, '../json/indicators.json');
 const barStatFilePath = path.join(__dirname, '../json/barStats.json');
 
-
 var socketMethods = {
     search: (socket, query) => socket.emit('searchResults', searchItems(query, indicatorsJson)),
     addFilter: (socket, query) => socket.emit('addFilter', addBasicParams(JSON.parse(JSON.stringify(indicatorsJson.filter(j=>j.name==query.name)[0])))),
@@ -31,6 +30,7 @@ var socketMethods = {
         let isBarOption = code.allowBars
         let description = code.description
         let isDataOption = code.isDataOption
+        let isSet = code.isSet
         code = code.code
 
         // let allParams = [barConstant].concat(params);
@@ -80,6 +80,7 @@ var socketMethods = {
             "label": label,
             "barOption" : isBarOption,
             "isDataOption": isDataOption,
+            "isSet" : isSet,
             "description" : description,
             "parameters": paramArray
         }
@@ -116,6 +117,7 @@ var socketMethods = {
             for(let i=0; i<filters.length; i++) {
                 let setBars = bars, data = bars.map(b=>b.ClosePrice)
                 if(varList[i].bars =='ha') setBars = proccessors.getHa(bars)
+                if(varList[i].data== "close")  data = bars.map(b=>b.ClosePrice)
                 if(varList[i].data== "open")  data = bars.map(b=>b.OpenPrice)
                 if(varList[i].data == 'low')  data = bars.map(b=>b.LowPrice)
                 if(varList[i].data == 'high')  data = bars.map(b=>b.HighPrice)
@@ -125,16 +127,34 @@ var socketMethods = {
                     bullSell: false,
                     bearSell: false
                 }
-                if(varList[i].setOffset) {
+                if(varList[i].offsetType == "set") {
                     let filter = filters[i](varList[i].offset>0 ? setBars.slice(0, -varList[i].offset) : setBars, data, varList[i])
                     if (!filter.bullBuy) res.bullBuy = false;
                     if (!filter.bearBuy) res.bearBuy = false;
                     if(filter.bullSell) res.bullSell = true
                     if(filter.bearSell) res.bearSell = true
                 }
-                else {
-                    let index=0
+                else if(varList[i].offsetType == "any") {
+                    res = {
+                        bullBuy: false,
+                        bearBuy: false,
+                        bullSell: false,
+                        bearSell: false
+                    };
+                    let index = 0;
+                    let filter;
+                    do {
+                        filter = filters[i](index > 0 ? setBars.slice(0, -index) : setBars, data, varList[i]);
+                        if (filter.bullBuy) res.bullBuy = true;
+                        if (filter.bearBuy) res.bearBuy = true;
+                        if (filter.bullSell) res.bullSell = true;
+                        if (filter.bearSell) res.bearSell = true;
+                        index++;
+                    } while (index <= varList[i].offset);
 
+                }
+                else { // varList[i].offsetType == "all"
+                    let index=0
                     do {
                         let filter = filters[i](index>0 ? setBars.slice(0, -index) : setBars, data, varList[i])
                         if (!filter.bullBuy) res.bullBuy = false;
@@ -373,14 +393,14 @@ function addBasicParams(item) {
         "name": "bullSell",
         "label" : "Bullish Sell Alert",
         "type": "bool",
-        "default" : true,
+        "default" : false,
     }
 
     bearSellParam = {
         "name": "bearSell",
         "label" : "Bearish Sell Alert",
         "type": "bool",
-        "default" : true,
+        "default" : false,
     }
 
     offsetParam = {
@@ -390,21 +410,37 @@ function addBasicParams(item) {
         "default" : 0
     }
 
-    offsetBool = {
+    offsetType = {
         "name" : "setOffset",
         "label" : "Set Offset",
-        "type" : "bool",
-        "default" : false
+        "type" : "dropdown",
+        "default" : "any",
+        "options" : [
+            {
+                "name" : "any",
+                "label" : "Any"
+            },
+            {
+                "name" : "all",
+                "label" : "All"
+            },
+            {
+                "name" : "set",
+                "label" : "Set"
+            },
+        ]
     }
 
     if(item.barOption) item.parameters.push(barParam)
     if(item.barOption) item.parameters.push(dataInputParam)
-    item.parameters.push(bullBuyParam)
-    item.parameters.push(bearBuyParam)
-    item.parameters.push(bullSellParam)
-    item.parameters.push(bearSellParam)
+    if(!item.isSet) {
+        item.parameters.push(bullBuyParam)
+        item.parameters.push(bearBuyParam)
+        item.parameters.push(bullSellParam)
+        item.parameters.push(bearSellParam)
+    }
     item.parameters.push(offsetParam)
-    item.parameters.push(offsetBool)
+    item.parameters.push(offsetType)
 
     return item
 }
