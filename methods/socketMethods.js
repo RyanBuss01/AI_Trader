@@ -131,9 +131,10 @@ var socketMethods = {
                     if (!filter.bearBuy) res.bearBuy = false;
                     if(filter.bullSell) res.bullSell = true
                     if(filter.bearSell) res.bearSell = true
-                    let index=0
                 }
                 else {
+                    let index=0
+
                     do {
                         let filter = filters[i](index>0 ? setBars.slice(0, -index) : setBars, data, varList[i])
                         if (!filter.bullBuy) res.bullBuy = false;
