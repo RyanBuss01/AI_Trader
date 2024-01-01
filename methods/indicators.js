@@ -93,8 +93,6 @@ return {
     isDoji: function anonymous(bars,data,vars
 ) {
 let doji = tools.isDojiCandle(bars)
-console.log(doji)
-
     
 return {
   set : doji

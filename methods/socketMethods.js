@@ -99,16 +99,18 @@ var socketMethods = {
         socket.emit('createIndicator', {res: true})
     },
 
-    scan: function (socket, data) {
+    scan: function (socket, scanner) {
         let resList=[]
         let filters = []
         let varList = []
         
-        for(let i=0; i<data.length; i++) {
-            let f = data[i]
+        for(let i=0; i<scanner.length; i++) {
+            let f = scanner[i]
             filters.push(indicators[f.name])
             var vars = {}
-            if(data[i].parameters && data[i].parameters.length>0) for(let p of data[i].parameters) vars[p.name]= p.value != undefined || p.value != null ? p.value : p.default 
+            if(scanner[i].parameters && scanner[i].parameters.length>0) for(let p of scanner[i].parameters) vars[p.name]= p.value != undefined || p.value != null ? p.value : p.default 
+            if(scanner[i].isSet) vars['isSet'] = scanner[i].isSet
+            else vars['isSet'] = false
             varList.push(vars)
         }
 
@@ -116,6 +118,7 @@ var socketMethods = {
             let bars = fullBars[sym].bars, filterResList = []
             for(let i=0; i<filters.length; i++) {
                 let setBars = bars, data = bars.map(b=>b.ClosePrice)
+                let isSet = varList[i].isSet
                 if(varList[i].bars =='ha') setBars = proccessors.getHa(bars)
                 if(varList[i].data== "close")  data = bars.map(b=>b.ClosePrice)
                 if(varList[i].data== "open")  data = bars.map(b=>b.OpenPrice)
@@ -125,7 +128,8 @@ var socketMethods = {
                     bullBuy: true,
                     bearBuy: true,
                     bullSell: false,
-                    bearSell: false
+                    bearSell: false,
+                    set: true
                 }
                 if(varList[i].offsetType == "set") {
                     let filter = filters[i](varList[i].offset>0 ? setBars.slice(0, -varList[i].offset) : setBars, data, varList[i])
@@ -133,13 +137,15 @@ var socketMethods = {
                     if (!filter.bearBuy) res.bearBuy = false;
                     if(filter.bullSell) res.bullSell = true
                     if(filter.bearSell) res.bearSell = true
+                    if(isSet) res.set = filter.set
                 }
                 else if(varList[i].offsetType == "any") {
                     res = {
                         bullBuy: false,
                         bearBuy: false,
                         bullSell: false,
-                        bearSell: false
+                        bearSell: false,
+                        set: false
                     };
                     let index = 0;
                     let filter;
@@ -149,6 +155,7 @@ var socketMethods = {
                         if (filter.bearBuy) res.bearBuy = true;
                         if (filter.bullSell) res.bullSell = true;
                         if (filter.bearSell) res.bearSell = true;
+                        if (filter.set) res.set = true;
                         index++;
                     } while (index <= varList[i].offset);
 
@@ -157,10 +164,12 @@ var socketMethods = {
                     let index=0
                     do {
                         let filter = filters[i](index>0 ? setBars.slice(0, -index) : setBars, data, varList[i])
+                        console.log(filter, varList[i])
                         if (!filter.bullBuy) res.bullBuy = false;
                         if (!filter.bearBuy) res.bearBuy = false;
                         if(filter.bullSell) res.bullSell = true
                         if(filter.bearSell) res.bearSell = true
+                        if (!filter.set) res.set = false;
                         index++
                     }
                     while(index<=varList[i].offset)
@@ -169,17 +178,20 @@ var socketMethods = {
             }
             
             let result = {
-                bullBuy: filterResList.every((f, index) => !varList[index].bullBuy || f.bullBuy),
-                bearBuy: filterResList.every((f, index) => !varList[index].bearBuy || f.bearBuy),
+                bullBuy: filterResList.every((f, index) => varList[index].isSet ?  f.set : (!varList[index].bullBuy || f.bullBuy)),
+                bearBuy: filterResList.every((f, index) => varList[index].isSet ?  f.set :  (!varList[index].bearBuy || f.bearBuy)),
                 bullSell: filterResList.some((f, index) => varList[index].bullSell && f.bullSell),
-                bearSell: filterResList.some((f, index) => varList[index].bearSell && f.bearSell)
+                bearSell: filterResList.some((f, index) => varList[index].bearSell && f.bearSell),
             };
             let alert = []
             
+
             if(result.bullBuy) alert.push('bullBuy')
             if(result.bearBuy) alert.push('bearBuy')
             if(result.bullSell) alert.push('bullSell')
             if(result.bearSell) alert.push('bearSell')
+
+        
 
             resList.push({sym: fullBars[sym].ticker, alert:alert})
 
@@ -189,22 +201,22 @@ var socketMethods = {
 
     },
 
-    backtest: function (socket, data) {
+    backtest: function (socket, scanner) {
         let success=0, total=0, diffArray=[]
         let filters = []
         let varList = []
-        let backtestPeriod = data.backtestPeriod
-        let sellPeriod = data.sellPeriod;
-        let sellType = data.sellType
-        let sellVar = data.sellVar
+        let backtestPeriod = scanner.backtestPeriod
+        let sellPeriod = scanner.sellPeriod;
+        let sellType = scanner.sellType
+        let sellVar = scanner.sellVar
         let sellStop = -2
-        data = data.data
+        scanner = scanner.data
         
-        for(let i=0; i<data.length; i++) {
-            let f = data[i]
+        for(let i=0; i<scanner.length; i++) {
+            let f = scanner[i]
             filters.push(indicators[f.name])
             var vars = {}
-            if(data[i].parameters && data[i].parameters.length>0) for(let p of data[i].parameters) vars[p.name]= p.value != undefined || p.value != null ? p.value : p.default 
+            if(scanner[i].parameters && scanner[i].parameters.length>0) for(let p of scanner[i].parameters) vars[p.name]= p.value != undefined || p.value != null ? p.value : p.default 
             varList.push(vars)
         }
 
@@ -217,21 +229,28 @@ var socketMethods = {
 
             if(bars && bars.length>200) {
             for(let i=0; i<filters.length; i++) {
-                let setBars = bars
+                let isSet = false
+                let setBars = bars, data = bars.map(b=>b.ClosePrice)
                 if(varList[i].bars =='ha') setBars = proccessors.getHa(bars)
+                if(varList[i].data== "close")  data = bars.map(b=>b.ClosePrice)
+                if(varList[i].data== "open")  data = bars.map(b=>b.OpenPrice)
+                if(varList[i].data == 'low')  data = bars.map(b=>b.LowPrice)
+                if(varList[i].data == 'high')  data = bars.map(b=>b.HighPrice)
+                if(varList[i].isSet) isSet = true
                 let res = {
                     bullBuy: true,
                     bearBuy: true,
                     bullSell: false,
-                    bearSell: false
+                    bearSell: false,
                 }
                 let index=0
                 do {
-                    let filter = filters[i](index>0 ? setBars.slice(0, -index) : setBars, varList[i])
+                    let filter = filters[i](index>0 ? setBars.slice(0, -index) : setBars, data, varList[i])
                     if (!filter.bullBuy) res.bullBuy = false;
                     if (!filter.bearBuy) res.bearBuy = false;
                     if(filter.bullSell) res.bullSell = true
                     if(filter.bearSell) res.bearSell = true
+                    if(isSet && !filter.set) res.set = false
                     index++
                 }
                 while(index<=varList[i].offset)
