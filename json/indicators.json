@@ -1,0 +1,128 @@
+[
+    {
+        "name": "ema",
+        "label": "Exponential Moving Average",
+        "barOption": true,
+        "isDataOption": true,
+        "description": "determines if stock is trending via exponential moving average",
+        "parameters": [
+            {
+                "name": "period",
+                "label": "Period",
+                "type": "number",
+                "default": "200",
+                "options": []
+            }
+        ]
+    },
+    {
+        "name": "haTrendingBar",
+        "label": "Heikin Ashi Trending",
+        "barOption": false,
+        "isDataOption": false,
+        "description": "determines if heikin ashi strategy is trending",
+        "parameters": []
+    },
+    {
+        "name": "macd",
+        "label": "Moving Average Convergence Divergence",
+        "barOption": true,
+        "isDataOption": true,
+        "description": "returns buy and sell signals based on MACD line",
+        "parameters": [
+            {
+                "name": "shortPeriod",
+                "label": "Short Smoothing Period",
+                "type": "number",
+                "default": "12",
+                "options": []
+            },
+            {
+                "name": "longPeriod",
+                "label": "Long Smoothing Period",
+                "type": "number",
+                "default": "26",
+                "options": []
+            }
+        ]
+    },
+    {
+        "name": "macdCrossover",
+        "label": "Macd Crossover",
+        "barOption": true,
+        "isDataOption": true,
+        "description": "Returns signal based on new Macd trends",
+        "parameters": [
+            {
+                "name": "input",
+                "label": "Data Input",
+                "type": "dropdown",
+                "default": "close",
+                "options": [
+                    {
+                        "name": "close",
+                        "label": "close"
+                    },
+                    {
+                        "name": "open",
+                        "label": "open"
+                    },
+                    {
+                        "name": "high",
+                        "label": "high"
+                    },
+                    {
+                        "name": "low",
+                        "label": "low"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "sotchRSI",
+        "label": "Stochastic RSI",
+        "barOption": true,
+        "isDataOption": true,
+        "description": "Returns signal if stochastic RSI is trending",
+        "parameters": [
+            {
+                "name": "lengthRSI",
+                "label": "RSI period",
+                "type": "number",
+                "default": "14",
+                "options": []
+            },
+            {
+                "name": "lengthStoch",
+                "label": "Stoch Period",
+                "type": "number",
+                "default": "14",
+                "options": []
+            },
+            {
+                "name": "smoothK",
+                "label": "smoothK",
+                "type": "number",
+                "default": "3",
+                "options": []
+            },
+            {
+                "name": "smoothD",
+                "label": "smoothD",
+                "type": "number",
+                "default": "3",
+                "options": []
+            }
+        ]
+    },
+    {
+        "name": "isDoji",
+        "label": "Doji Candle",
+        "barOption": true,
+        "isDataOption": false,
+        "isSet": true,
+        "description": "Set function to determine if bar is a dojo candle",
+        "parameters": []
+    }
+]
