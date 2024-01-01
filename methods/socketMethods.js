@@ -113,8 +113,6 @@ var socketMethods = {
 
         for(let sym=0; sym<fullBars.length; sym++) {
             let bars = fullBars[sym].bars, filterResList = []
-
-
             for(let i=0; i<filters.length; i++) {
                 let setBars = bars, data = bars.map(b=>b.ClosePrice)
                 if(varList[i].bars =='ha') setBars = proccessors.getHa(bars)
@@ -127,16 +125,25 @@ var socketMethods = {
                     bullSell: false,
                     bearSell: false
                 }
-                let index=0
-                do {
-                    let filter = filters[i](index>0 ? setBars.slice(0, -index) : setBars, data, varList[i])
+                if(varList[i].setOffset) {
+                    let filter = filters[i](varList[i].offset>0 ? setBars.slice(0, -varList[i].offset) : setBars, data, varList[i])
                     if (!filter.bullBuy) res.bullBuy = false;
                     if (!filter.bearBuy) res.bearBuy = false;
                     if(filter.bullSell) res.bullSell = true
                     if(filter.bearSell) res.bearSell = true
-                    index++
+                    let index=0
                 }
-                while(index<=varList[i].offset)
+                else {
+                    do {
+                        let filter = filters[i](index>0 ? setBars.slice(0, -index) : setBars, data, varList[i])
+                        if (!filter.bullBuy) res.bullBuy = false;
+                        if (!filter.bearBuy) res.bearBuy = false;
+                        if(filter.bullSell) res.bullSell = true
+                        if(filter.bearSell) res.bearSell = true
+                        index++
+                    }
+                    while(index<=varList[i].offset)
+                }
                 filterResList.push(res)
             }
             
@@ -382,6 +389,13 @@ function addBasicParams(item) {
         "default" : 0
     }
 
+    offsetBool = {
+        "name" : "setOffset",
+        "label" : "Set Offset",
+        "type" : "bool",
+        "default" : false
+    }
+
     if(item.barOption) item.parameters.push(barParam)
     if(item.barOption) item.parameters.push(dataInputParam)
     item.parameters.push(bullBuyParam)
@@ -389,6 +403,7 @@ function addBasicParams(item) {
     item.parameters.push(bullSellParam)
     item.parameters.push(bearSellParam)
     item.parameters.push(offsetParam)
+    item.parameters.push(offsetBool)
 
     return item
 }
