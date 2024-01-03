@@ -191,7 +191,6 @@ var socketMethods = {
             if(result.bullSell) alert.push('bullSell')
             if(result.bearSell) alert.push('bearSell')
 
-        
 
             resList.push({sym: fullBars[sym].ticker, alert:alert})
 
