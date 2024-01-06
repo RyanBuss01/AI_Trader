@@ -236,3 +236,18 @@ title {
     margin-bottom: 30px;
     margin-top: 10px;
 }
+
+
+.selectedStock {
+    margin-top: 10px;
+    margin-left: 10px;
+    font-size: large;
+    font-weight: bold;
+    
+
+}
+
+.probSelected {
+    margin-top: 10px;
+    margin-left: 10px;
+}

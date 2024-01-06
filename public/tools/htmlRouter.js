@@ -43,5 +43,5 @@
         });
 
         // Optionally, load the default page into the iframe
-        document.getElementById('contentFrame').src = 'main.html';
+        document.getElementById('contentFrame').src = 'strategy.html';
     

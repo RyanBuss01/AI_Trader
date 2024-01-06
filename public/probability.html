@@ -1,0 +1,18 @@
+<head>
+    <meta charset="UTF-8">
+    <title>Socket.IO Test</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <h1>Probability</h1>
+    <input type="text" id="searchBar" placeholder="Type to search for stock...">
+    <div id="searchResults"></div>
+    <div class="selectedStock" id="selectedStock">SPY</div>
+    <select id="probSelect" class="probSelect">
+        <option value="price" selected>Price</option>
+    </select>
+    <div id="probDiv"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="./sockets/probSocket.js"></script>
+</body>

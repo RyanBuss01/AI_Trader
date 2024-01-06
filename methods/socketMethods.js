@@ -326,6 +326,47 @@ var socketMethods = {
     }
 
     },
+
+    getProbStockData: function (socket, ticker) {
+        let bars = fullBars.filter(b=>b.ticker==ticker)[0].bars 
+        let close = bars[bars.length-1].ClosePrice
+
+        let data = {
+            close: close,
+        }
+
+        socket.emit('getProbStockData', data)
+    },
+
+    getProbability: function (socket, data) {
+        let ticker = data.stock
+        let guess = data.data
+        let bars = fullBars.filter(b=>b.ticker==ticker)[0].bars
+        let close = bars[bars.length-1].ClosePrice
+        let diff = tools.pDiff(close, guess)
+        let period = data.period
+
+        let hits = 0, total = 0
+
+        for(let i=0; i<bars.length; i++) {
+            let bar = bars[i]
+            total++
+            for(let j=0 ; j<period; j++) {
+                let hit = true
+                let barDiff = tools.pDiff(bar.ClosePrice, bars[i+j].ClosePrice)
+                if(hit && ((diff>0 && barDiff>diff) || (diff<0 && barDiff<diff))) {hit=false; hits++}
+            }
+        }
+
+        let prob =100*hits/total
+        prob = 100-prob
+
+        socket.emit('getProbability', prob)
+
+
+
+    }
+
 }
 
 let searchTickers = (query, items) => items.filter(item => hasAllLettersInSequence(query.toLowerCase(), item.toLowerCase()));
