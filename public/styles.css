@@ -241,11 +241,23 @@ title {
 .selectedStock {
     margin-top: 10px;
     margin-left: 10px;
+    margin-bottom: 10px;
+    width: 300px;
+    border: 2px solid white; 
+    background-color: black; 
+    border-radius: 10px;
+    display: flex; /* Changed to flex */
+    flex-direction: column;
+    justify-content: center; /* Center horizontally */
+    align-items: center; 
+}
+
+.selectedStockText {
     font-size: large;
     font-weight: bold;
-    
-
+    display: block;
 }
+
 
 .probSelected {
     margin-top: 10px;

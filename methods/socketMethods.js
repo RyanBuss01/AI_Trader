@@ -330,9 +330,20 @@ var socketMethods = {
     getProbStockData: function (socket, ticker) {
         let bars = fullBars.filter(b=>b.ticker==ticker)[0].bars 
         let close = bars[bars.length-1].ClosePrice
+        let haBars = proccessors.getHa(bars)
+        let haBar = haBars[haBars.length-1]
+        let bBands = tools.getBollingerBands(bars.map(b=>b.ClosePrice), 20, 2)
+        let highBand = bBands.upper[bBands.upper.length-1]
+        let lowBand = bBands.lower[bBands.lower.length-1]
+        let atr = tools.getATR(bars, 14).atr
 
+        console.log([bBands.upper.slice(-20), lowBand, atr])
         let res = {
             close: close,
+            haBar: haBar,
+            highBand: highBand,
+            lowBand: lowBand,
+            atr: atr
         }
 
         socket.emit('getProbStockData', res)
@@ -352,8 +363,8 @@ var socketMethods = {
             let bar = bars[i]
             if(i>=bars.length-period) break
             total++
+            let hit = true
             for(let j=0 ; j<period; j++) {
-                let hit = true
                 let barDiff = tools.pDiff(bar.ClosePrice, diff>0? bars[i+j+1].HighPrice : diff<0 ? bars[i+j+1].LowPrice : bars[i+j+1].ClosePrice)
                 if(hit && ((diff>0 && barDiff>diff) || (diff<0 && barDiff<diff))) {hit=false; hits++}
             }

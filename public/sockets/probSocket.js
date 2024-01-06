@@ -43,9 +43,8 @@ buildProbDiv = () => {
 }  
 
 let searchResultClick = (ticker) => {
-    selectedStock = ticker;
-    selectedStockDiv.textContent = ticker;
     resultsContainer.innerHTML = '';
+    selectedStock = ticker;
     socket.emit('getProbStockData', ticker);
 }
 
@@ -74,19 +73,62 @@ socket.on('searchResults', (results) => {
 });
 
 socket.on('getProbStockData', (data) => {
+    selectedStockDiv.innerHTML = ''; // Clear existing content
     let close = data.close;
-    let closeContainer = document.createElement('div')
-    closeContainer.textContent = close;
-    selectedStockDiv.appendChild(closeContainer);
+
+    // Create and append the stock symbol text
+    let selectedStockText = document.createElement('div');
+    selectedStockText.textContent = `Symbol: ${selectedStock}`;
+    selectedStockText.className = 'selectedStockText';
+    selectedStockDiv.appendChild(selectedStockText); // Corrected this line
+
+    // Create and append the current price text
+    let closeContainer = document.createElement('div');
+    closeContainer.className = 'selectedStockText';
+    closeContainer.textContent = `Current Price: ${close}`;
+    selectedStockDiv.appendChild(closeContainer); // Append the new element
+
+    let hBar = data.haBar, trend, hColor
+    if(hBar.OpenPrice == hBar.LowPrice) trend = 'Bullish'
+    else if(hBar.OpenPrice == hBar.HighPrice) trend = 'Bearish'
+    else trend = 'Neutral'
+    let haTrend = document.createElement('div');
+    haTrend.className = 'selectedStockText';
+    haTrend.textContent = `HA Trend: ${trend}`;
+    selectedStockDiv.appendChild(haTrend); 
+
+    if(hBar.OpenPrice < hBar.ClosePrice) hColor = 'Green'
+    else if(hBar.OpenPrice > hBar.ClosePrice) hColor = 'Red'
+    else hColor = 'Neutral'
+    let color = document.createElement('div');
+    color.className = 'selectedStockText';
+    color.textContent = `HA Color: ${hColor}`;
+    selectedStockDiv.appendChild(color);
+
+    let highBand = data.highBand, lowBand = data.lowBand
+    let hBand = document.createElement('div');
+    hBand.className = 'selectedStockText';
+    hBand.textContent = `High Band: ${highBand}`;
+    selectedStockDiv.appendChild(hBand);
+
+    let lBand = document.createElement('div');
+    lBand.className = 'selectedStockText';
+    lBand.textContent = `Low Band: ${lowBand}`;
+    selectedStockDiv.appendChild(lBand);
+
+    let atrDiv = document.createElement('div');
+    atrDiv.className = 'selectedStockText';
+    atrDiv.textContent = `ATR: ${data.atr}`;
+    selectedStockDiv.appendChild(atrDiv);
 });
 
 socket.on('getProbability', (data) => {
     resultsDiv.innerHTML = ''
     let probContainer = document.createElement('div');
-    probContainer.className = 'selectedStock';
-    probContainer.textContent = data;
+    probContainer.className = 'selectedStockText';
+    probContainer.textContent = `Probability: ${data}`;
     resultsDiv.appendChild(probContainer);
 })
 
 buildProbDiv();
-socket.emit('getProbStockData', selectedStock);
+socket.emit('getProbStockData', `SPY`);

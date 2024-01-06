@@ -146,7 +146,92 @@ var tools = {
         if(bar.OpenPrice>bar.HighPrice-(wickSize/4) && bar.ClosePrice>bar.HighPrice-(wickSize/4)) return false;
 
         return true
-      }
+      },
+
+      getBollingerBands: function (data, period, standardDeviations) {
+        // Calculate the simple moving average (SMA) for the given period
+        function calculateSMA(data, period) {
+          const sma = [];
+          for (let i = period - 1; i < data.length; i++) {
+            const sum = data.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
+            sma.push(sum / period);
+          }
+          return sma;
+        }
+      
+        // Calculate the standard deviation (SD) for the given period
+        function calculateSD(data, period) {
+          const sd = [];
+          for (let i = period - 1; i < data.length; i++) {
+            const subset = data.slice(i - period + 1, i + 1);
+            const mean = subset.reduce((a, b) => a + b, 0) / period;
+            const squaredDiff = subset.map((value) => Math.pow(value - mean, 2));
+            const variance = squaredDiff.reduce((a, b) => a + b, 0) / period;
+            const standardDeviation = Math.sqrt(variance);
+            sd.push(standardDeviation);
+          }
+          return sd;
+        }
+      
+        // Calculate the upper and lower Bollinger Bands
+        const sma = calculateSMA(data, period);
+        const sd = calculateSD(data, period);
+        const upperBands = sma.map((value, index) => value + (standardDeviations * sd[index]));
+        const lowerBands = sma.map((value, index) => value - (standardDeviations * sd[index]));
+      
+        return {
+          upper: upperBands,
+          lower: lowerBands,
+        };
+        },
+
+      trueRange: function (bars) {
+        let trueRanges = [];
+        for (let i = 1; i < bars.length; i++) {
+            const bar = bars[i];
+            const previousBar = bars[i - 1];
+            const trueRange = Math.max(
+                bar.HighPrice - bar.LowPrice,
+                Math.abs(bar.HighPrice - previousBar.ClosePrice),
+                Math.abs(bar.LowPrice - previousBar.ClosePrice)
+            );
+            trueRanges.push(trueRange);
+        }
+        return trueRanges;
+      },
+
+      getATR: function (fullBars, period) {
+        let totalRange = 0, totalPRange=0;
+        let bars=fullBars.slice(-period)
+        
+      
+        for (let i = 1; i < bars.length; i++) {
+          const highPrice1 = bars[i - 1].HighPrice;
+          const lowPrice1 = bars[i - 1].LowPrice;
+          const highPrice2 = bars[i].HighPrice;
+          const lowPrice2 = bars[i].LowPrice;
+          const midPrice = (bars[i].HighPrice + bars[i].ClosePrice) / 2;
+      
+          const range1 = highPrice1 - lowPrice1;
+          const range2 = highPrice2 - lowPrice2;
+          const range3 = Math.abs(highPrice2 - lowPrice1);
+    
+          const trueRange = Math.max(range1, range2, range3);
+          let pRange = ((((trueRange/2)+midPrice)/midPrice)-1)*100
+          totalRange += trueRange;
+          totalPRange += pRange
+        }
+      
+        const averageTrueRange = totalRange / (bars.length - 1);
+        const precentRange = totalPRange / (bars.length-1);
+    
+        let json = {
+          atr: Number(averageTrueRange.toFixed(3)),
+          precent_range: Number(precentRange.toFixed(3)),
+        }
+    
+        return  json;
+      },
 }
 
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
