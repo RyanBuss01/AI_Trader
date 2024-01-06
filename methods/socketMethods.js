@@ -331,11 +331,11 @@ var socketMethods = {
         let bars = fullBars.filter(b=>b.ticker==ticker)[0].bars 
         let close = bars[bars.length-1].ClosePrice
 
-        let data = {
+        let res = {
             close: close,
         }
 
-        socket.emit('getProbStockData', data)
+        socket.emit('getProbStockData', res)
     },
 
     getProbability: function (socket, data) {
@@ -350,17 +350,17 @@ var socketMethods = {
 
         for(let i=0; i<bars.length; i++) {
             let bar = bars[i]
+            if(i>=bars.length-period) break
             total++
             for(let j=0 ; j<period; j++) {
                 let hit = true
-                let barDiff = tools.pDiff(bar.ClosePrice, bars[i+j].ClosePrice)
+                let barDiff = tools.pDiff(bar.ClosePrice, diff>0? bars[i+j+1].HighPrice : diff<0 ? bars[i+j+1].LowPrice : bars[i+j+1].ClosePrice)
                 if(hit && ((diff>0 && barDiff>diff) || (diff<0 && barDiff<diff))) {hit=false; hits++}
             }
         }
 
         let prob =100*hits/total
         prob = 100-prob
-
         socket.emit('getProbability', prob)
 
 

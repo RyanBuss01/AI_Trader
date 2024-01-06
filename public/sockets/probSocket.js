@@ -3,6 +3,7 @@ let selectedStockDiv = document.getElementById('selectedStock');
 let resultsContainer = document.getElementById('searchResults');
 let probSelect = document.getElementById('probSelect');
 let probDiv = document.getElementById('probDiv');
+let resultsDiv = document.getElementById('resultsDiv');
 
 let selectedData
 let period
@@ -23,15 +24,18 @@ buildProbDiv = () => {
         priceInput.setAttribute('type', 'number');
         priceInput.setAttribute('id', 'priceInput');
         priceInput.addEventListener('input', () => selectedData = priceInput.value);
+        let periodInputText = document.createElement('div');
+        periodInputText.textContent = 'Period Input: ';
         let periodInput = document.createElement('Input');
         periodInput.setAttribute('type', 'number');
         periodInput.setAttribute('id', 'priceInput');
         periodInput.addEventListener('input', () => period = periodInput.value);
         let runButton = document.createElement('button');
         runButton.textContent = 'Run';
-        runButton.addEventListener('click', () => socket.emit('getProbStockData', () =>runData()));
+        runButton.addEventListener('click', () => runData());
         probDiv.appendChild(probContainer);
         probDiv.appendChild(priceInput);
+        probDiv.appendChild(periodInputText);
         probDiv.appendChild(periodInput);
         probDiv.appendChild(runButton);
     }
@@ -77,9 +81,12 @@ socket.on('getProbStockData', (data) => {
 });
 
 socket.on('getProbability', (data) => {
+    resultsDiv.innerHTML = ''
     let probContainer = document.createElement('div');
+    probContainer.className = 'selectedStock';
     probContainer.textContent = data;
-    selectedStockDiv.appendChild(probContainer);
+    resultsDiv.appendChild(probContainer);
 })
 
 buildProbDiv();
+socket.emit('getProbStockData', selectedStock);
