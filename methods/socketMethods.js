@@ -337,7 +337,6 @@ var socketMethods = {
         let lowBand = bBands.lower[bBands.lower.length-1]
         let atr = tools.getATR(bars, 14).atr
 
-        console.log([bBands.upper.slice(-20), lowBand, atr])
         let res = {
             close: close,
             haBar: haBar,
@@ -377,7 +376,6 @@ var socketMethods = {
 
 
     }
-
 }
 
 let searchTickers = (query, items) => items.filter(item => hasAllLettersInSequence(query.toLowerCase(), item.toLowerCase()));

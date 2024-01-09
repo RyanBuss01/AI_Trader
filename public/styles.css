@@ -259,7 +259,19 @@ title {
 }
 
 
-.probSelected {
-    margin-top: 10px;
+.probSelect {
+    margin-top: 20px;
     margin-left: 10px;
+    margin-bottom: 10px;
+}
+
+
+#probSelect {
+    width: 150px;      /* Adjust the width as needed */
+    height: 30px;      /* Adjust the height as needed */
+    font-size: 16px;   /* Adjust font size for better readability */
+    padding: 5px;      /* Add some padding inside the select box */
+    border: 1px solid #ccc; /* Optional: adds a border */
+    border-radius: 4px;
+    background-color: darkgray;
 }
